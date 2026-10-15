@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f8f7">
+  <title>CarePath — Insurance Support</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172a28;
+      --muted: #73817e;
+      --line: #e6ece9;
+      --paper: #fff;
+      --canvas: #f6f8f7;
+      --green: #16765d;
+      --green-dark: #105c49;
+      --mint: #eaf5f0;
+      --amber: #a76b1a;
+      --amber-bg: #fff6e8;
+      --shadow: 0 12px 32px rgba(25, 57, 48, .055);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .app { min-height: 100vh; }
+    .sidebar {
+      background: #fff;
+      border-right: 1px solid var(--line);
+      bottom: 0;
+      display: flex;
+      flex-direction: column;
+      left: 0;
+      padding: 26px 18px 20px;
+      position: fixed;
+      top: 0;
+      width: 238px;
+      z-index: 2;
+    }
+    .brand { align-items: center; display: flex; gap: 11px; padding: 0 10px; }
+    .brand-mark {
+      align-items: center;
+      background: var(--green);
+      border-radius: 12px;
+      color: white;
+      display: flex;
+      font-size: 21px;
+      font-weight: 700;
+      height: 39px;
+      justify-content: center;
+      width: 39px;
+    }
+    .brand-name { font-size: 17px; font-weight: 720; letter-spacing: -.5px; }
+    .brand-sub { color: var(--muted); font-size: 11px; margin-top: -2px; }
+    .nav-label {
+      color: #9aa5a2;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.1px;
+      margin: 38px 12px 10px;
+      text-transform: uppercase;
+    }
+    .nav-item {
+      align-items: center;
+      border-radius: 9px;
+      color: #52615d;
+      display: flex;
+      gap: 12px;
+      margin: 2px 0;
+      padding: 10px 12px;
+      text-decoration: none;
+    }
+    .nav-item.active { background: var(--mint); color: var(--green-dark); font-weight: 650; }
+    .nav-icon { font-size: 17px; line-height: 1; text-align: center; width: 19px; }
+    .sidebar-bottom { margin-top: auto; }
+    .privacy-card {
+      background: #f7faf8;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      color: #677571;
+      font-size: 11px;
+      line-height: 1.55;
+      padding: 13px;
+    }
+    .privacy-card strong { color: var(--ink); display: block; font-size: 12px; margin-bottom: 4px; }
+    .user-card { align-items: center; border-top: 1px solid var(--line); display: flex; gap: 10px; margin-top: 16px; padding: 16px 5px 0; }
+    .avatar { align-items: center; background: #edf1ef; border-radius: 50%; color: #53635f; display: flex; font-size: 11px; font-weight: 700; height: 34px; justify-content: center; width: 34px; }
+    .user-name { font-size: 12px; font-weight: 650; }
+    .user-role { color: var(--muted); font-size: 10px; }
+    main { margin-left: 238px; min-height: 100vh; }
+    .topbar {
+      align-items: center;
+      background: rgba(255,255,255,.85);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      height: 65px;
+      justify-content: space-between;
+      padding: 0 42px;
+    }
+    .breadcrumbs { color: var(--muted); font-size: 12px; }
+    .breadcrumbs strong { color: var(--ink); font-weight: 600; }
+    .top-actions { align-items: center; color: var(--muted); display: flex; gap: 18px; }
+    .today { font-size: 12px; }
+    .top-avatar { align-items: center; background: #e4f1eb; border-radius: 50%; color: var(--green-dark); display: flex; font-size: 11px; font-weight: 700; height: 32px; justify-content: center; width: 32px; }
+    .content { margin: 0 auto; max-width: 1200px; padding: 34px 42px 60px; }
+    .page-heading { align-items: flex-end; display: flex; justify-content: space-between; margin-bottom: 25px; }
+    .eyebrow { color: var(--green); font-size: 11px; font-weight: 700; letter-spacing: 1.05px; text-transform: uppercase; }
+    h1 { font-size: 27px; letter-spacing: -.8px; line-height: 1.2; margin: 6px 0 5px; }
+    .subtitle { color: var(--muted); font-size: 13px; margin: 0; }
+    .date-chip { background: white; border: 1px solid var(--line); border-radius: 8px; color: #5f6e69; font-size: 12px; padding: 8px 12px; }
+    .notice {
+      align-items: flex-start;
+      background: var(--amber-bg);
+      border: 1px solid #f1dfc2;
+      border-radius: 10px;
+      color: #775720;
+      display: flex;
+      gap: 11px;
+      margin-bottom: 22px;
+      padding: 12px 15px;
+    }
+    .notice-icon { font-size: 16px; }
+    .notice strong { color: #6c4a12; display: block; font-size: 12px; margin-bottom: 2px; }
+    .notice p { font-size: 11px; margin: 0; }
+    .stats { display: grid; gap: 15px; grid-template-columns: repeat(3, 1fr); margin-bottom: 24px; }
+    .stat-card { background: var(--paper); border: 1px solid var(--line); border-radius: 11px; padding: 17px 19px; }
+    .stat-top { align-items: center; color: var(--muted); display: flex; font-size: 11px; justify-content: space-between; }
+    .stat-icon { align-items: center; background: var(--mint); border-radius: 8px; color: var(--green); display: flex; font-size: 15px; height: 29px; justify-content: center; width: 29px; }
+    .stat-value { font-size: 25px; font-weight: 690; letter-spacing: -.7px; margin-top: 10px; }
+    .stat-note { color: #899490; font-size: 10px; margin-top: 1px; }
+    .workspace { align-items: start; display: grid; gap: 20px; grid-template-columns: minmax(0, 1.55fr) minmax(285px, .85fr); }
+    .panel { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
+    .panel-heading { align-items: center; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; padding: 17px 20px; }
+    .panel-heading h2 { font-size: 14px; letter-spacing: -.15px; margin: 0; }
+    .panel-heading p { color: var(--muted); font-size: 11px; margin: 3px 0 0; }
+    .about-panel { margin-top: 20px; padding: 22px; scroll-margin-top: 82px; }
+    .about-panel h2 { font-size: 17px; letter-spacing: -.3px; margin: 4px 0 6px; }
+    .about-intro { color: var(--muted); font-size: 12px; margin: 0; max-width: 690px; }
+    .about-grid { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 19px; }
+    .about-card { background: #f8faf9; border: 1px solid var(--line); border-radius: 9px; padding: 14px; }
+    .about-card h3 { font-size: 11px; margin: 0 0 5px; }
+    .about-card p { color: #6f7c77; font-size: 10px; line-height: 1.6; margin: 0; }
+    .about-disclaimer { background: var(--amber-bg); border-radius: 8px; color: #775720; font-size: 10px; line-height: 1.6; margin-top: 14px; padding: 11px 13px; }
+    .step-label { color: var(--green); font-size: 10px; font-weight: 650; }
+    form { padding: 19px 20px 20px; }
+    .section-label { align-items: center; color: #374742; display: flex; font-size: 11px; font-weight: 700; gap: 8px; margin: 2px 0 13px; }
+    .section-number { align-items: center; background: var(--mint); border-radius: 50%; color: var(--green); display: flex; font-size: 10px; height: 21px; justify-content: center; width: 21px; }
+    .fields { display: grid; gap: 13px 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .field { min-width: 0; }
+    .field.full { grid-column: 1 / -1; }
+    label { color: #56635f; display: block; font-size: 10px; font-weight: 650; margin-bottom: 5px; }
+    .required { color: #ba5b4c; }
+    input, select, textarea {
+      background: white;
+      border: 1px solid #dfe6e3;
+      border-radius: 7px;
+      color: var(--ink);
+      min-height: 37px;
+      outline: none;
+      padding: 8px 10px;
+      transition: border-color .15s, box-shadow .15s;
+      width: 100%;
+    }
+    input::placeholder, textarea::placeholder { color: #a6afac; }
+    input:focus, select:focus, textarea:focus { border-color: #64a58f; box-shadow: 0 0 0 3px rgba(22,118,93,.09); }
+    textarea { min-height: 65px; resize: vertical; }
+    .divider { border: 0; border-top: 1px solid #edf0ee; margin: 19px 0 17px; }
+    .help-text { color: #899490; font-size: 10px; margin: 5px 0 0; }
+    .form-footer { align-items: center; border-top: 1px solid #edf0ee; display: flex; justify-content: space-between; margin-top: 19px; padding-top: 15px; }
+    .form-footnote { color: #8a9591; font-size: 10px; }
+    .button {
+      align-items: center;
+      border: 0;
+      border-radius: 7px;
+      display: inline-flex;
+      font-size: 11px;
+      font-weight: 650;
+      gap: 7px;
+      justify-content: center;
+      min-height: 36px;
+      padding: 0 13px;
+    }
+    .button-primary { background: var(--green); color: #fff; }
+    .button-primary:hover { background: var(--green-dark); }
+    .button-quiet { background: #f2f5f3; color: #52615d; }
+    .button-quiet:hover { background: #e9efec; }
+    .list-panel { min-height: 336px; }
+    .count-pill { background: #f0f4f2; border-radius: 20px; color: #64716d; font-size: 10px; padding: 3px 8px; }
+    .search-wrap { padding: 13px 15px 8px; }
+    .search-input { background: #fbfcfb; font-size: 11px; min-height: 34px; }
+    .record-list { padding: 0 10px 10px; }
+    .empty-state { color: #929d99; padding: 42px 17px; text-align: center; }
+    .empty-icon { align-items: center; background: #f2f6f4; border-radius: 50%; color: #8b9b95; display: flex; font-size: 21px; height: 48px; justify-content: center; margin: 0 auto 11px; width: 48px; }
+    .empty-state strong { color: #56645f; display: block; font-size: 11px; font-weight: 650; }
+    .empty-state p { font-size: 10px; margin: 4px auto 0; max-width: 180px; }
+    .record { align-items: center; border-bottom: 1px solid #eff2f0; display: flex; gap: 10px; padding: 12px 6px; }
+    .record:last-child { border-bottom: 0; }
+    .record-avatar { align-items: center; background: var(--mint); border-radius: 50%; color: var(--green-dark); display: flex; flex: 0 0 34px; font-size: 10px; font-weight: 700; height: 34px; justify-content: center; }
+    .record-main { flex: 1; min-width: 0; }
+    .record-name { font-size: 11px; font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .record-meta { color: #8a9591; font-size: 10px; margin-top: 2px; }
+    .status { background: #f4f1e8; border-radius: 20px; color: #8a6a32; font-size: 9px; padding: 3px 7px; white-space: nowrap; }
+    .status.uninsured { background: #fff0e9; color: #a95d3d; }
+    .status.covered { background: #eaf5f0; color: #27775d; }
+    .remove-button { background: transparent; border: 0; color: #9aa5a1; font-size: 15px; padding: 4px; }
+    .remove-button:hover { color: #a3463a; }
+    .list-foot { border-top: 1px solid var(--line); color: #8b9692; font-size: 10px; padding: 11px 15px; }
+    .toast { background: #193c32; border-radius: 8px; bottom: 22px; box-shadow: 0 8px 25px rgba(10,35,28,.2); color: white; font-size: 12px; opacity: 0; padding: 11px 16px; pointer-events: none; position: fixed; right: 22px; transform: translateY(8px); transition: .2s; z-index: 5; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .sr-only { clip: rect(0,0,0,0); clip-path: inset(50%); height: 1px; overflow: hidden; position: absolute; white-space: nowrap; width: 1px; }
+
+    @media (max-width: 980px) {
+      .sidebar { width: 205px; }
+      main { margin-left: 205px; }
+      .topbar { padding: 0 25px; }
+      .content { padding: 28px 25px 48px; }
+      .workspace { grid-template-columns: minmax(0, 1.25fr) minmax(255px, .8fr); }
+    }
+    @media (max-width: 760px) {
+      .sidebar { align-items: center; bottom: auto; flex-direction: row; flex-wrap: wrap; height: auto; padding: 9px 13px 0; position: sticky; top: 0; width: 100%; }
+      .brand { padding: 0; }
+      .brand-mark { height: 36px; width: 36px; }
+      .nav-label, .sidebar-bottom { display: none; }
+      .sidebar nav { display: flex; gap: 3px; margin: 7px -13px 0; overflow-x: auto; padding: 0 9px 8px; width: calc(100% + 26px); }
+      .nav-item { flex: 0 0 auto; font-size: 11px; gap: 6px; padding: 8px 9px; }
+      main { margin-left: 0; }
+      .topbar { height: 48px; padding: 0 18px; }
+      .content { padding: 25px 18px 40px; }
+      .workspace { grid-template-columns: 1fr; }
+      .list-panel { grid-row: 1; }
+      .about-panel { scroll-margin-top: 68px; }
+    }
+    @media (max-width: 520px) {
+      .content { padding-left: 13px; padding-right: 13px; }
+      .page-heading { align-items: flex-start; gap: 12px; }
+      h1 { font-size: 23px; }
+      .date-chip { font-size: 10px; white-space: nowrap; }
+      .stats { gap: 8px; }
+      .stat-card { padding: 12px 10px; }
+      .stat-top { align-items: flex-start; font-size: 9px; gap: 5px; }
+      .stat-icon { display: none; }
+      .stat-value { font-size: 21px; }
+      .stat-note { font-size: 9px; }
+      .panel-heading { padding: 15px; }
+      .about-panel { padding: 17px 15px; }
+      .about-grid { grid-template-columns: 1fr; }
+      form { padding: 17px 15px; }
+      .fields { gap: 11px 9px; }
+      .form-footer { align-items: flex-start; flex-direction: column; gap: 11px; }
+      .form-footer .button { width: 100%; }
+      .today { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" aria-label="Main navigation">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">+</div>
+        <div><div class="brand-name">CarePath</div><div class="brand-sub">Patient support</div></div>
+      </div>
+      <div class="nav-label">Workspace</div>
+      <nav>
+        <a class="nav-item" href="#overview"><span class="nav-icon" aria-hidden="true">⌂</span>Overview</a>
+        <a class="nav-item active" href="#intake" aria-current="page"><span class="nav-icon" aria-hidden="true">▤</span>Insurance support</a>
+        <a class="nav-item" href="#records"><span class="nav-icon" aria-hidden="true">♧</span>Patient records</a>
+        <a class="nav-item" href="#about-us"><span class="nav-icon" aria-hidden="true">ⓘ</span>About us</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="privacy-card">
+          <strong>Privacy reminder</strong>
+          This demo keeps entries in memory only. Do not enter real patient information.
+        </div>
+        <div class="user-card">
+          <div class="avatar" aria-hidden="true">DR</div>
+          <div><div class="user-name">Care team</div><div class="user-role">Clinic workspace</div></div>
+        </div>
+      </div>
+    </aside>
+
+    <main id="overview">
+      <header class="topbar">
+        <div class="breadcrumbs">Workspace <span aria-hidden="true">/</span> <strong>Insurance support</strong></div>
+        <div class="top-actions"><span class="today" id="today"></span><div class="top-avatar" aria-label="Care team">CT</div></div>
+      </header>
+      <div class="content">
+        <section class="page-heading">
+          <div>
+            <div class="eyebrow">Patient services</div>
+            <h1>Insurance support</h1>
+            <p class="subtitle">Record patients who may need help finding medical coverage.</p>
+          </div>
+          <div class="date-chip" id="date-chip"></div>
+        </section>
+
+        <section class="notice" aria-label="Important privacy notice">
+          <div class="notice-icon" aria-hidden="true">ⓘ</div>
+          <div>
+            <strong>Prototype — not for real patient data</strong>
+            <p>Information entered here stays temporarily in this browser tab and is cleared when you close or refresh it. A secure, access-controlled backend and appropriate privacy/compliance review are required before real-world use.</p>
+          </div>
+        </section>
+
+        <section class="stats" aria-label="Intake summary">
+          <article class="stat-card">
+            <div class="stat-top"><span>Patients recorded</span><span class="stat-icon" aria-hidden="true">♧</span></div>
+            <div class="stat-value" id="total-count">0</div>
+            <div class="stat-note">This session</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-top"><span>May need coverage</span><span class="stat-icon" aria-hidden="true">♡</span></div>
+            <div class="stat-value" id="need-count">0</div>
+            <div class="stat-note">Uninsured or unsure</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-top"><span>Follow-up requested</span><span class="stat-icon" aria-hidden="true">↗</span></div>
+            <div class="stat-value" id="followup-count">0</div>
+            <div class="stat-note">Would like assistance</div>
+          </article>
+        </section>
+
+        <div class="workspace">
+          <section class="panel" id="intake">
+            <div class="panel-heading">
+              <div><h2>New patient intake</h2><p>Collect only what is needed to arrange a follow-up.</p></div>
+              <span class="step-label">INTAKE FORM</span>
+            </div>
+            <form id="patient-form">
+              <div class="section-label"><span class="section-number">1</span>Patient information</div>
+              <div class="fields">
+                <div class="field"><label for="first-name">First name <span class="required">*</span></label><input id="first-name" name="firstName" autocomplete="given-name" placeholder="e.g. Jordan" required maxlength="60"></div>
+                <div class="field"><label for="last-name">Last name <span class="required">*</span></label><input id="last-name" name="lastName" autocomplete="family-name" placeholder="e.g. Lee" required maxlength="60"></div>
+                <div class="field"><label for="dob">Date of birth <span class="required">*</span></label><input id="dob" name="dob" type="date" autocomplete="bday" required></div>
+                <div class="field"><label for="phone">Phone number</label><input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="(555) 000-0000" maxlength="30"></div>
+                <div class="field full"><label for="email">Email address</label><input id="email" name="email" type="email" autocomplete="email" placeholder="patient@example.com" maxlength="120"></div>
+              </div>
+
+              <hr class="divider">
+              <div class="section-label"><span class="section-number">2</span>Coverage &amp; follow-up</div>
+              <div class="fields">
+                <div class="field">
+                  <label for="coverage">Current insurance status <span class="required">*</span></label>
+                  <select id="coverage" name="coverage" required>
+                    <option value="">Select status</option>
+                    <option value="Uninsured">No current coverage</option>
+                    <option value="Unsure">Unsure / needs help checking</option>
+                    <option value="Covered">Has current coverage</option>
+                    <option value="Ending soon">Coverage ending soon</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="follow-up">Would they like assistance? <span class="required">*</span></label>
+                  <select id="follow-up" name="followUp" required>
+                    <option value="">Select response</option>
+                    <option value="Yes">Yes, please follow up</option>
+                    <option value="No">No, not at this time</option>
+                    <option value="Discuss">Would like to discuss options</option>
+                  </select>
+                </div>
+                <div class="field full">
+                  <label for="notes">Brief follow-up notes <span style="font-weight:400">(optional)</span></label>
+                  <textarea id="notes" name="notes" maxlength="300" placeholder="For example: best time or method to contact. Avoid adding medical details."></textarea>
+                  <p class="help-text">Do not include diagnoses, Social Security numbers, or insurance account numbers.</p>
+                </div>
+              </div>
+              <div class="form-footer">
+                <span class="form-footnote"><span class="required">*</span> Required fields</span>
+                <button class="button button-primary" type="submit"><span aria-hidden="true">＋</span> Add patient record</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="panel list-panel" id="records">
+            <div class="panel-heading">
+              <div><h2>Recent patients</h2><p>Records from this session only</p></div>
+              <span class="count-pill" id="list-count">0 records</span>
+            </div>
+            <div class="search-wrap">
+              <label class="sr-only" for="search">Search patients</label>
+              <input class="search-input" id="search" type="search" placeholder="⌕  Search by name...">
+            </div>
+            <div class="record-list" id="record-list" aria-live="polite">
+              <div class="empty-state">
+                <div class="empty-icon" aria-hidden="true">▤</div>
+                <strong>No patient records yet</strong>
+                <p>New intake records will appear here during this session.</p>
+              </div>
+            </div>
+            <div class="list-foot">Records are cleared when you refresh or close this tab.</div>
+          </section>
+        </div>
+
+        <section class="panel about-panel" id="about-us" aria-labelledby="about-heading">
+          <div class="eyebrow">About CarePath</div>
+          <h2 id="about-heading">A simple starting point for coverage support</h2>
+          <p class="about-intro">CarePath is a prototype intake tool for care teams to note when a patient may want help exploring medical insurance coverage and arranging a follow-up.</p>
+          <div class="about-grid">
+            <article class="about-card">
+              <h3>1. Record the basics</h3>
+              <p>Enter a patient's contact details, current coverage status, and whether they would like assistance. Notes should be brief and avoid sensitive medical or insurance account details.</p>
+            </article>
+            <article class="about-card">
+              <h3>2. Review the session list</h3>
+              <p>New entries appear in the patient list. Search by name, review the coverage and follow-up summary, or remove an entry. The summary numbers update as records change.</p>
+            </article>
+            <article class="about-card">
+              <h3>3. Arrange a follow-up</h3>
+              <p>The form helps a care team identify who asked for support. It does not contact patients or connect them with an insurer, broker, or enrollment service.</p>
+            </article>
+          </div>
+          <div class="about-disclaimer"><strong>Important:</strong> This demonstration stores entries only in the current page session. Refreshing or closing the tab clears them. It does not save or send records, determine eligibility, enroll anyone in a plan, or replace guidance from a qualified insurance assister. Do not use it with real patient information.</div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      const records = [];
+      const form = document.getElementById("patient-form");
+      const list = document.getElementById("record-list");
+      const search = document.getElementById("search");
+      const toast = document.getElementById("toast");
+      let toastTimer;
+
+      const today = new Date();
+      document.getElementById("today").textContent = today.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+      document.getElementById("date-chip").textContent = today.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+      document.getElementById("dob").max = today.toISOString().slice(0, 10);
+
+      const showToast = (message) => {
+        toast.textContent = message;
+        toast.classList.add("show");
+        window.clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(() => toast.classList.remove("show"), 2600);
+      };
+
+      const makeElement = (tag, className, text) => {
+        const element = document.createElement(tag);
+        if (className) element.className = className;
+        if (text !== undefined) element.textContent = text;
+        return element;
+      };
+
+      const render = () => {
+        const query = search.value.trim().toLocaleLowerCase();
+        const visible = records.filter((record) => `${record.firstName} ${record.lastName}`.toLocaleLowerCase().includes(query));
+        document.getElementById("total-count").textContent = records.length;
+        document.getElementById("need-count").textContent = records.filter((record) => record.coverage === "Uninsured" || record.coverage === "Unsure" || record.coverage === "Ending soon").length;
+        document.getElementById("followup-count").textContent = records.filter((record) => record.followUp !== "No").length;
+        document.getElementById("list-count").textContent = `${records.length} ${records.length === 1 ? "record" : "records"}`;
+        list.replaceChildren();
+
+        if (!visible.length) {
+          const empty = makeElement("div", "empty-state");
+          empty.append(makeElement("div", "empty-icon", query ? "⌕" : "▤"));
+          empty.append(makeElement("strong", "", query ? "No matching patients" : "No patient records yet"));
+          empty.append(makeElement("p", "", query ? "Try searching another name." : "New intake records will appear here during this session."));
+          list.append(empty);
+          return;
+        }
+
+        visible.slice().reverse().forEach((record) => {
+          const row = makeElement("div", "record");
+          const initials = `${record.firstName[0]}${record.lastName[0]}`.toLocaleUpperCase();
+          row.append(makeElement("div", "record-avatar", initials));
+          const main = makeElement("div", "record-main");
+          main.append(makeElement("div", "record-name", `${record.firstName} ${record.lastName}`));
+          const coverageText = record.coverage === "Uninsured" ? "No current coverage" : record.coverage;
+          main.append(makeElement("div", "record-meta", `${coverageText} · ${record.followUp === "No" ? "No follow-up" : "Follow-up requested"}`));
+          row.append(main);
+          const statusClass = record.coverage === "Covered" ? "status covered" : record.coverage === "Uninsured" ? "status uninsured" : "status";
+          row.append(makeElement("span", statusClass, record.coverage));
+          const remove = makeElement("button", "remove-button", "×");
+          remove.type = "button";
+          remove.setAttribute("aria-label", `Remove ${record.firstName} ${record.lastName}`);
+          remove.addEventListener("click", () => {
+            const index = records.findIndex((item) => item.id === record.id);
+            if (index !== -1) records.splice(index, 1);
+            render();
+            showToast("Patient record removed.");
+          });
+          row.append(remove);
+          list.append(row);
+        });
+      };
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        if (!form.reportValidity()) return;
+        const data = new FormData(form);
+        const dob = data.get("dob");
+        if (dob && new Date(`${dob}T00:00:00`) > today) {
+          document.getElementById("dob").setCustomValidity("Date of birth cannot be in the future.");
+          document.getElementById("dob").reportValidity();
+          document.getElementById("dob").setCustomValidity("");
+          return;
+        }
+
+        records.push({
+          id: `${Date.now()}-${Math.random()}`,
+          firstName: data.get("firstName").trim(),
+          lastName: data.get("lastName").trim(),
+          dob,
+          phone: data.get("phone").trim(),
+          email: data.get("email").trim(),
+          coverage: data.get("coverage"),
+          followUp: data.get("followUp"),
+          notes: data.get("notes").trim()
+        });
+        render();
+        form.reset();
+        showToast("Patient record added for this session.");
+      });
+
+      search.addEventListener("input", render);
+      document.getElementById("dob").addEventListener("input", (event) => event.currentTarget.setCustomValidity(""));
+      document.querySelectorAll(".nav-item").forEach((link) => {
+        link.addEventListener("click", () => {
+          document.querySelectorAll(".nav-item").forEach((item) => {
+            item.classList.remove("active");
+            item.removeAttribute("aria-current");
+          });
+          link.classList.add("active");
+          link.setAttribute("aria-current", "page");
+        });
+      });
+      render();
+    })();
+  </script>
+</body>
+</html>
